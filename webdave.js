@@ -117,14 +117,14 @@ function gitFiles(error, stdout, stderr){
 }
 
 
-if (input[0] == 'git') {
-    console.log('Do a git type command');
+if (input[0] == 'staged') {
+    console.log('Sending staged files');
     exec("git diff --name-only --cached", gitFiles);
 }
 else if (input[0] == 'all') {
     all();
 }
 else {
-    console.log('try using input as file list');
+    console.log('Try using input as file list');
     files();
 }
