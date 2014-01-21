@@ -36,17 +36,18 @@
  */
 
 var $ = require('jquery');
-var util = require('util')
+var async = require("async");
 var exec = require('child_process').exec;
+var execSync = require("exec-sync");
 var fs = require('fs');
 var loaddir = require('loaddir');
-var execSync = require("exec-sync");
-var async = require("async");
 var local = process.cwd();
-var YAML = require('yamljs');
-var endpoint = YAML.load('webdave.yml');
-var sys = require('sys')
-var exec = require('child_process').exec;
+var parseString = require('xml2js').parseString;
+var sys = require('sys');
+var util = require('util')
+var yaml = require('yamljs');
+
+//var exec = require('child_process').exec;
 
 // TWS
 //var local = '/var/vhosts/tws/template/';
@@ -54,6 +55,7 @@ var exec = require('child_process').exec;
 //var user = 'portable';
 //var pass='portshop1!';
 
+var endpoint = yaml.load('webdave.yml');
 var input = process.argv.slice(2);
 var queue = async.queue(runUpload, 2); // Run ten simultaneous uploads
 
@@ -63,6 +65,9 @@ queue.drain = function() {
 };
 
 function puts(error, stdout, stderr) {
+    console.log('stderr: ' + stderr);
+    
+    console.log('stderr: ' + stderr);
     util.print('stdout: ' + stdout);
     util.print('stderr: ' + stderr);
     if (error !== null) {
@@ -91,15 +96,24 @@ function uploadFiles(files, callback){
     console.log('Uploading...');
     $.each(files, function( index, file ){
         if (file != '') {
-            command = util.format("curl --digest --user '%s:%s' -T '%s/%s' '%s%s'", endpoint.user, endpoint.pass, local, file, endpoint.remote, file);
             console.log(file);
+            // TODO: check if file exists
+            command = util.format("curl --digest --user '%s:%s' -T '%s/%s' '%s%s'", endpoint.user, endpoint.pass, local, file, endpoint.remote, file);
             result = execSync(command, puts);
+
+            if(result.stdout != '' ){
+                // result.stdout is xml. Convert to json
+                parseString(result.stdout, function (err, resultJson) {
+                    console.log(resultJson['d:error']['s:message']);
+                });
+            }
         }
         // Convert this to async here I think
         //queue.push(command, function (err) {
         //        console.log('queued ' + path);
         //});
     });
+    console.log("All files are uploaded");
     process.exit(code=0); // required for sync uploads, otherwise its just waits for more files
 }
 

@@ -3,7 +3,7 @@
 	sudo apt-get install nodejs
 	
 = Getting dependencies
-	sudo npm install -g jquery util loaddir exec-sync async yamljs
+	sudo npm install -g jquery util loaddir execSync async yamljs xml2js
 
 = Installing
 # git clone
